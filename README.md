@@ -1,5 +1,5 @@
 # react-rich-text-template
-[![Travic CI]https://travis-ci.org/anmi/react-rich-text-template.svg?branch=master](https://travis-ci.org/anmi/react-rich-text-template)
+[![Travic CI](https://travis-ci.org/anmi/react-rich-text-template.svg?branch=master)](https://travis-ci.org/anmi/react-rich-text-template)
 
 Text templates parameterized with react components
 
