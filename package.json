@@ -1,0 +1,23 @@
+{
+  "name": "react-rich-text-template",
+  "version": "0.0.1",
+  "description": "Text templates parameterized with react components",
+  "scripts": {
+    "test": "mocha"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/anmi/react-rich-text-template.git"
+  },
+  "keywords": [
+    "React",
+    "template"
+  ],
+  "author": "Andrei Miroshnik",
+  "license": "MIT",
+  "devDependencies": {
+    "mocha": "^2.2.1",
+    "should": "^5.2.0",
+    "chai": "^2.3.0"
+  }
+}

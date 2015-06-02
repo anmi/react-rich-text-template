@@ -1,0 +1,144 @@
+function flattern(array) {
+  var flatternArray = [];
+
+  array.forEach(function(elem) {
+    if (elem.constructor === Array) {
+      flatternArray = flatternArray.concat(elem);
+    } else {
+      flatternArray.push(elem);
+    }
+  });
+
+  return flatternArray;
+}
+//
+// tokens:
+// [{regexp: /regexp/g, name: 'tokenname'}]
+
+function _tokenize(tokensCategories, str) {
+  if (tokensCategories.length === 0) {
+    if (str.length === 0) {
+      return [];
+    } else {
+      return [{token: 'string', value: str}];
+    }
+  }
+  var firstTokenCategory = tokensCategories[0],
+    otherTokensCategories = tokensCategories.slice(1);
+
+  var newTokensArray = [];
+
+  return flattern(
+    str.split(firstTokenCategory.regexp)
+      .map(function(token) {
+        if (firstTokenCategory.regexp.test(token)) {
+          return {
+            token: firstTokenCategory.type,
+            value: token
+          };
+        } else {
+          return _tokenize(otherTokensCategories, token);
+        }
+      })
+  );
+}
+
+// TODO: escape tokens
+function tokenize(tokensCategories, str) {
+  return _tokenize(
+    tokensCategories,
+    str
+  );
+}
+
+function buildTree(tokens, opts) {
+  var currentLevel = {
+      elements: []
+    },
+    root = currentLevel,
+    stack = [root];
+
+  tokens.forEach(function(token) {
+    switch (token.token) {
+      case 'string':
+        currentLevel.elements.push({
+          type: token.token,
+          value: token.value
+        });
+        break;
+      case 'textPlaceholder':
+        currentLevel.elements.push({
+          type: token.token,
+          value: opts.tokenValuesExtractors
+            .textPlaceholder(token.value)
+        });
+        break;
+      case 'selfClosingTag':
+        currentLevel.elements.push({
+          type: token.token,
+          value: opts.tokenValuesExtractors
+            .selfClosingTag(token.value)
+        });
+        break;
+      case 'openingTag':
+        var newLevel = {
+          type: token.token,
+          value: opts.tokenValuesExtractors
+            .openingTag(token.value),
+          elements: []
+        };
+        stack.push(newLevel);
+        currentLevel.elements.push(newLevel);
+        currentLevel = newLevel;
+        break;
+      case 'closingTag':
+        stack.pop();
+        currentLevel = stack[stack.length - 1];
+        break;
+    }
+  });
+
+  return root;
+}
+
+function inject(node, opts, data) {
+  return node.elements.map(function(elem) {
+    if (elem.type === 'string') {
+      return opts.stringWrapper(elem.value);
+    }
+    if (elem.type === 'textPlaceholder') {
+      return data[elem.value];
+    }
+    if (elem.type === 'selfClosingTag') {
+      return data[elem.value]();
+    }
+    if (elem.type === 'openingTag') {
+      return data[elem.value](
+        inject(elem, opts, data)
+      );
+    }
+  });
+}
+
+function compile(opts, template) {
+  var tokensCategories = [
+      {type: 'openingTag', regexp: opts.openingTagRegexp},
+      {type: 'closingTag', regexp: opts.closingTagRegexp}
+    ].concat(opts.selfClosingTagRegexp);
+
+  var rootNode = buildTree(
+      tokenize(tokensCategories, template),
+      opts
+    );
+
+  return function(context) {
+    return inject(rootNode, opts, context);
+  }
+}
+
+module.exports = {
+  compile: compile,
+  buildTree: buildTree,
+  tokenize: tokenize,
+  inject: inject
+};
