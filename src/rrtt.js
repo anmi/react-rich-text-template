@@ -1,3 +1,29 @@
+var defaultConfig = {
+  stringWrapper: function(elem) {
+    return elem;
+  },
+  tokenValuesExtractors: {
+    openingTag: function(str) {
+      return str.slice(1, -1);
+    },
+    closingTag: function(str) {
+      return str.slice(2, -1);
+    },
+    selfClosingTag: function(str) {
+      return str.slice(1, -2);
+    },
+    textPlaceholder: function(str) {
+      return str.slice(1, -1);
+    }
+  },
+  openingTagRegexp: /(<[^\>\/]+>)/g,
+  closingTagRegexp: /(<\/[^\>\/]+>)/g,
+  selfClosingTagRegexp: [
+    {type: 'selfClosingTag', regexp: /(<[^\>\/]+\/>)/g},
+    {type: 'textPlaceholder', regexp: /(\{[^\{\}]+\})/g}
+  ]
+};
+
 function flattern(array) {
   var flatternArray = [];
 
@@ -137,6 +163,7 @@ function compile(opts, template) {
 }
 
 module.exports = {
+  defaultConfig: defaultConfig,
   compile: compile,
   buildTree: buildTree,
   tokenize: tokenize,

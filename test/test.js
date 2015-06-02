@@ -4,31 +4,7 @@ var should = require('should'),
   rrtt = require('../src/rrtt'),
   chai = require('chai');
 
-var opts = {
-  stringWrapper: function(elem) {
-    return elem;
-  },
-  tokenValuesExtractors: {
-    openingTag: function(str) {
-      return str.slice(1, -1);
-    },
-    closingTag: function(str) {
-      return str.slice(2, -1);
-    },
-    selfClosingTag: function(str) {
-      return str.slice(1, -2);
-    },
-    textPlaceholder: function(str) {
-      return str.slice(1, -1);
-    }
-  },
-  openingTagRegexp: /(<[^\>\/]+>)/g,
-  closingTagRegexp: /(<\/[^\>\/]+>)/g,
-  selfClosingTagRegexp: [
-    {type: 'selfClosingTag', regexp: /(<[^\>\/]+\/>)/g},
-    {type: 'textPlaceholder', regexp: /(\{[^\{\}]+\})/g}
-  ]
-};
+var opts = rrtt.defaultConfig;
 
 var tokensCategories = [
     {type: 'openingTag', regexp: opts.openingTagRegexp},
