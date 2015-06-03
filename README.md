@@ -26,3 +26,29 @@ template({
 ["Hey, anmi, checkout your ", <profileLink>profile</profileLink>]
 */
 ```
+
+You can redefine string wrapper and set key prop to speedup react elements merge
+```jsx
+var rrtt = require('react-rich-text-template');
+
+var opts = Object.create(rrtt.defaultConfig);
+
+opts.stringWrapper = (string, index) =>
+  <span key={index}>{string}</span>
+
+var template = rrtt.compile('template with<foo>multiple</foo>elems', opts)
+
+template({
+  foo: (children, index) =>
+    <Foo key={index}>{children[0]}</Foo>
+});
+/* =>
+[
+  <span key=0>template with</span>,
+  <Foo key=1>
+    <span key=0>multiple</span>
+  </Foo>
+  <span key=2>elems</span>
+]
+*/
+```

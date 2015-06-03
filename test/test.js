@@ -119,9 +119,9 @@ describe('Injector', function() {
   });
 });
 
-describe("Template compiler", function() {
-  it("should compile template and run", function() {
-    var template = "<it>{status}</it>";
+describe('Template compiler', function() {
+  it('should compile template and run', function() {
+    var template = '<it>{status}</it>';
     var context = {
       it: function(ctx) {
         return {"It's": ctx[0]}
@@ -132,6 +132,68 @@ describe("Template compiler", function() {
     chai.assert.deepEqual(
       rrtt.compile(template)(context),
       [{"It's": "alive!"}]
+    );
+  });
+
+  it('should pass index into wrapper', function() {
+    var template = 'test <foo>indexed</foo>output<br/>t';
+
+    var opts = Object.create(rrtt.defaultConfig);
+
+    opts.stringWrapper = function(string, index) {
+      return {
+        tag: 'span',
+        text: string,
+        key: index
+      };
+    }
+
+    chai.assert.deepEqual(
+      rrtt.compile(template, opts)({
+        foo: function(children, index) {
+          return {
+            tag: 'foo',
+            children: children,
+            key: index
+          }
+        },
+        br: function(index) {
+          return {
+            tag: 'br',
+            key: index
+          }
+        }
+      }),
+      [
+        {
+          tag: 'span',
+          text: 'test ',
+          key: 0
+        },
+        {
+          tag: 'foo',
+          children: [{
+            tag: 'span',
+            text: 'indexed',
+            key: 0
+          }],
+          key: 1
+        },
+        {
+          tag: 'span',
+          text: 'output',
+          key: 2
+        },
+        {
+          tag: 'br',
+          key: 3
+        },
+        {
+          tag: 'span',
+          text: 't',
+          key: 4
+        }
+      ]
     );
   });
 });

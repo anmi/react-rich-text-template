@@ -131,7 +131,8 @@ function moveStringsToResult(stringsQueue, opts, result) {
   if (stringsQueue.length > 0) {
     result.push(
       opts.stringWrapper(
-        stringsQueue.join('')
+        stringsQueue.join(''),
+        result.length
       )
     );
   }
@@ -151,13 +152,14 @@ function inject(node, opts, data) {
     if (elem.type === 'selfClosingTag') {
       moveStringsToResult(stringsQueue, opts, result);
       stringsQueue = [];
-      result.push(data[elem.value]());
+      result.push(data[elem.value](result.length));
     }
     if (elem.type === 'openingTag') {
       moveStringsToResult(stringsQueue, opts, result);
       stringsQueue = [];
       result.push(data[elem.value](
-        inject(elem, opts, data)
+        inject(elem, opts, data),
+        result.length
       ));
     }
   });
