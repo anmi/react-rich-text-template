@@ -1,7 +1,8 @@
 {
   "name": "react-rich-text-template",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Text templates parameterized with react components",
+  "main": "src/rrtt.js",
   "scripts": {
     "test": "mocha"
   },
