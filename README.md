@@ -15,7 +15,6 @@ For example: "Hey, {username}, checkout your <profileLink>profile<profileLink>"
 var rrtt = require('react-rich-text-template');
 
 var template = rrtt.compile(
-  rrtt.defaultConfig,
   "Hey, {username}, checkout your <profileLink>profile<profileLink>"
 );
 
