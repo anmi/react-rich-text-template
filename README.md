@@ -24,6 +24,6 @@ template({
   profileLink: text => <profileLink>{text}</profileLink>
 });
 /*
-["Hey, ", "anmi", ", checkout your ", <profileLink>profile</profileLink>]
+["Hey, anmi, checkout your ", <profileLink>profile</profileLink>]
 */
 ```

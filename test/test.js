@@ -105,7 +105,7 @@ describe('Injector', function() {
     chai.assert.deepEqual(
       result,
       [
-        "Hey, ", "anmi", ",",
+        "Hey, anmi,",
         {nextLineComponent: true}, " ",
         {
           paragraphComponent: true,
@@ -130,7 +130,7 @@ describe("Template compiler", function() {
     };
 
     chai.assert.deepEqual(
-      rrtt.compile(opts, template)(context),
+      rrtt.compile(template)(context),
       [{"It's": "alive!"}]
     );
   });

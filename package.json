@@ -15,6 +15,7 @@
   ],
   "author": "Andrei Miroshnik",
   "license": "MIT",
+  "homepage": "https://github.com/anmi/react-rich-text-template",
   "devDependencies": {
     "mocha": "^2.2.1",
     "should": "^5.2.0",

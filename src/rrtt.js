@@ -127,26 +127,51 @@ function buildTree(tokens, opts) {
   return root;
 }
 
-function inject(node, opts, data) {
-  return node.elements.map(function(elem) {
-    if (elem.type === 'string') {
-      return opts.stringWrapper(elem.value);
-    }
-    if (elem.type === 'textPlaceholder') {
-      return data[elem.value];
-    }
-    if (elem.type === 'selfClosingTag') {
-      return data[elem.value]();
-    }
-    if (elem.type === 'openingTag') {
-      return data[elem.value](
-        inject(elem, opts, data)
-      );
-    }
-  });
+function moveStringsToResult(stringsQueue, opts, result) {
+  if (stringsQueue.length > 0) {
+    result.push(
+      opts.stringWrapper(
+        stringsQueue.join('')
+      )
+    );
+  }
 }
 
-function compile(opts, template) {
+function inject(node, opts, data) {
+  var result = [],
+    stringsQueue = [];
+
+  node.elements.map(function(elem) {
+    if (elem.type === 'string') {
+      stringsQueue.push(elem.value);
+    }
+    if (elem.type === 'textPlaceholder') {
+      stringsQueue.push(data[elem.value]);
+    }
+    if (elem.type === 'selfClosingTag') {
+      moveStringsToResult(stringsQueue, opts, result);
+      stringsQueue = [];
+      result.push(data[elem.value]());
+    }
+    if (elem.type === 'openingTag') {
+      moveStringsToResult(stringsQueue, opts, result);
+      stringsQueue = [];
+      result.push(data[elem.value](
+        inject(elem, opts, data)
+      ));
+    }
+  });
+
+  moveStringsToResult(stringsQueue, opts, result);
+
+  return result;
+}
+
+function compile(template, opts) {
+  if (!opts) {
+    opts = defaultConfig;
+  }
+
   var tokensCategories = [
       {type: 'openingTag', regexp: opts.openingTagRegexp},
       {type: 'closingTag', regexp: opts.closingTagRegexp}
