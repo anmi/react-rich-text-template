@@ -148,7 +148,13 @@ function inject(node, opts, data) {
     }
     if (elem.type === 'textPlaceholder') {
       if (typeof data[elem.value] !== 'undefined') {
-        stringsQueue.push(data[elem.value]);
+        if (typeof data[elem.value] === 'string') {
+          stringsQueue.push(data[elem.value]);
+        } else {
+          moveStringsToResult(stringsQueue, opts, result);
+          stringsQueue = [];
+          result.push(data[elem.value]);
+        }
       } else if (typeof opts.processMissingParam === 'function') {
         moveStringsToResult(stringsQueue, opts, result);
         stringsQueue = [];

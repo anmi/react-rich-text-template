@@ -196,6 +196,27 @@ describe('Template compiler', function() {
       ]
     );
   });
+
+  it('should pass object in text placeholder', function() {
+    var template = '<it>{status}</it>';
+    var context = {
+      it: function(ctx) {
+        return {"It's": ctx[0]}
+      },
+      'status': {
+        content: 'alive!'
+      }
+    };
+
+    chai.assert.deepEqual(
+      rrtt.compile(template)(context),
+      [{
+        "It's": {
+          content: "alive!"
+        }
+      }]
+    );
+  });
 });
 
 describe('processMissingParam', function() {
