@@ -197,3 +197,108 @@ describe('Template compiler', function() {
     );
   });
 });
+
+describe('processMissingParam', function() {
+  it('should handle missing param', function() {
+    var template = 'test <foo>indexed</foo>output<br/>t';
+
+    var opts = Object.create(rrtt.defaultConfig);
+
+    opts.stringWrapper = function(string, index) {
+      return {
+        tag: 'span',
+        text: string,
+        key: index
+      };
+    };
+
+    opts.processMissingParam = function(paramName, children, index) {
+      return {
+        tag: 'missingParam',
+        paramName: paramName,
+        key: index
+      };
+    }
+
+    chai.assert.deepEqual(
+      rrtt.compile(template, opts)({
+        br: function(index) {
+          return {tag: 'br', key: index};
+        }
+      }),
+      [
+        {tag: 'span', text: 'test ', key: 0},
+        {tag: 'missingParam', paramName: 'foo', key: 1},
+        {tag: 'span', text: 'output', key: 2},
+        {tag: 'br', key: 3},
+        {tag: 'span', text: 't', key: 4}
+      ]
+    );
+  });
+
+  it('should handle self-closing tag', function() {
+    var template = 'test <foo>indexed</foo>output<br/>t';
+
+    var opts = Object.create(rrtt.defaultConfig);
+
+    opts.stringWrapper = function(string, index) {
+      return {
+        tag: 'span',
+        text: string,
+        key: index
+      };
+    };
+
+    opts.processMissingParam = function(paramName, children, index) {
+      return {
+        tag: 'missingParam',
+        paramName: paramName,
+        key: index
+      };
+    }
+
+    chai.assert.deepEqual(
+      rrtt.compile(template, opts)({
+      }),
+      [
+        {tag: 'span', text: 'test ', key: 0},
+        {tag: 'missingParam', paramName: 'foo', key: 1},
+        {tag: 'span', text: 'output', key: 2},
+        {tag: 'missingParam', paramName: 'br', key: 3},
+        {tag: 'span', text: 't', key: 4}
+      ]
+    );
+  });
+
+  it('should handle text placeholder', function() {
+    var template = 'Hello {world}!';
+
+    var opts = Object.create(rrtt.defaultConfig);
+
+    opts.stringWrapper = function(string, index) {
+      return {
+        tag: 'span',
+        text: string,
+        key: index
+      };
+    };
+
+    opts.processMissingParam = function(paramName, children, index) {
+      return {
+        tag: 'missingParam',
+        paramName: paramName,
+        key: index
+      };
+    }
+
+    chai.assert.deepEqual(
+      rrtt.compile(template, opts)({
+      }),
+      [
+        {tag: 'span', text: 'Hello ', key: 0},
+        {tag: 'missingParam', paramName: 'world', key: 1},
+        {tag: 'span', text: '!', key: 2}
+      ]
+    );
+  });
+});

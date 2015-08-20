@@ -147,20 +147,46 @@ function inject(node, opts, data) {
       stringsQueue.push(elem.value);
     }
     if (elem.type === 'textPlaceholder') {
-      stringsQueue.push(data[elem.value]);
+      if (typeof data[elem.value] !== 'undefined') {
+        stringsQueue.push(data[elem.value]);
+      } else if (typeof opts.processMissingParam === 'function') {
+        moveStringsToResult(stringsQueue, opts, result);
+        stringsQueue = [];
+        result.push(opts.processMissingParam(
+          elem.value,
+          [],
+          result.length
+        ));
+      }
     }
     if (elem.type === 'selfClosingTag') {
       moveStringsToResult(stringsQueue, opts, result);
       stringsQueue = [];
-      result.push(data[elem.value](result.length));
+      if (typeof data[elem.value] === 'function') {
+        result.push(data[elem.value](result.length));
+      } else if (typeof opts.processMissingParam === 'function') {
+        result.push(opts.processMissingParam(
+          elem.value,
+          [],
+          result.length
+        ));
+      }
     }
     if (elem.type === 'openingTag') {
       moveStringsToResult(stringsQueue, opts, result);
       stringsQueue = [];
-      result.push(data[elem.value](
-        inject(elem, opts, data),
-        result.length
-      ));
+      if (typeof data[elem.value] === 'function') {
+        result.push(data[elem.value](
+          inject(elem, opts, data),
+          result.length
+        ));
+      } else if (typeof opts.processMissingParam === 'function') {
+        result.push(opts.processMissingParam(
+          elem.value,
+          inject(elem, opts, data),
+          result.length
+        ));
+      }
     }
   });
 

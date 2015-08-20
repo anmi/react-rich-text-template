@@ -52,3 +52,25 @@ template({
 ]
 */
 ```
+
+Define processMissingParam to handle missing params.
+```jsx
+var rrtt = require('react-rich-text-template');
+
+var opts = Object.create(rrtt.defaultConfig);
+
+opts.processMissingParam =
+  function(paramName, children, index) {
+    return <MissingTag>Missing tag: paramName</MissingTag>
+  };
+
+var template = rrtt.compile('Tag is <em>missing</em>');
+
+template({});
+/* =>
+[
+  'Tag is ',
+  <MissingTag>Missing tag: em</MissingTag>
+]
+*/
+```
