@@ -150,6 +150,8 @@ function inject(node, opts, data) {
       if (typeof data[elem.value] !== 'undefined') {
         if (typeof data[elem.value] === 'string') {
           stringsQueue.push(data[elem.value]);
+        } else if (typeof data[elem.value] === 'number') {
+          stringsQueue.push('' + data[elem.value]);
         } else {
           moveStringsToResult(stringsQueue, opts, result);
           stringsQueue = [];

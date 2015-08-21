@@ -217,6 +217,17 @@ describe('Template compiler', function() {
       }]
     );
   });
+
+  it('should convert numbers into strings', function() {
+    var template = '{count} apples'
+    var context = {
+      count: 5
+    };
+    chai.assert.deepEqual(
+      rrtt.compile(template)(context),
+      ['5 apples']
+    );
+  });
 });
 
 describe('processMissingParam', function() {
