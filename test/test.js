@@ -23,18 +23,18 @@ describe('Tokenizer', function() {
     chai.assert.deepEqual(
       tokens,
       [
-        {"token": "string", "value": "Hey, "},
-        {"token": "textPlaceholder", "value": "{username}"},
-        {"token": "string", "value": ","},
-        {"token": "selfClosingTag", "value": "<br/>"},
-        {"token": "string", "value": " "},
-        {"token": "openingTag", "value": "<p>"},
-        {"token": "string", "value": "checkout new "},
-        {"token": "openingTag", "value": "<link>"},
-        {"token": "string", "value": "features"},
-        {"token": "closingTag", "value": "</link>"},
-        {"token": "string", "value": "!"},
-        {"token": "closingTag", "value": "</p>"}
+        {"token": "string", "value": "Hey, ", position: 0},
+        {"token": "textPlaceholder", "value": "{username}", position: 5},
+        {"token": "string", "value": ",", position: 15},
+        {"token": "selfClosingTag", "value": "<br/>", position: 16},
+        {"token": "string", "value": " ", position: 21},
+        {"token": "openingTag", "value": "<p>", position: 22},
+        {"token": "string", "value": "checkout new ", position: 25},
+        {"token": "openingTag", "value": "<link>", position: 38},
+        {"token": "string", "value": "features", position: 44},
+        {"token": "closingTag", "value": "</link>", position: 52},
+        {"token": "string", "value": "!", position: 59},
+        {"token": "closingTag", "value": "</p>", position: 60}
       ]
     );
   });
@@ -45,7 +45,7 @@ describe('Abstract syntax tree builder', function() {
     should(rrtt.buildTree).be.an.instanceOf(Function);
 
     var tokens = rrtt.tokenize(tokensCategories, str);
-    var tree = rrtt.buildTree(tokens, opts);
+    var tree = rrtt.buildTree(tokens, opts, str);
 
     chai.assert.deepEqual(
       tree,
@@ -59,11 +59,13 @@ describe('Abstract syntax tree builder', function() {
           {
             "type": "openingTag",
             "value": "p",
+            "tokenValue": "<p>",
             "elements": [
               {"type": "string", "value": "checkout new "},
               {
                 "type": "openingTag",
                 "value": "link",
+                "tokenValue": "<link>",
                 "elements": [
                   {"type": "string", "value": "features"}
                 ]
@@ -76,12 +78,51 @@ describe('Abstract syntax tree builder', function() {
     );
     //var tree = rrtt.buildTree(
   });
+
+  it('should handle extra closing token', function() {
+    var str = 'This <a>token</a> </b> is invalid';
+
+    var tokens = rrtt.tokenize(tokensCategories, str);
+
+    chai.expect(rrtt.buildTree.bind(null, tokens, opts, str)).to.throw(
+      Error,
+      'Nothing to close by closeTag\n' +
+      'This <a>token</a> </b> is invalid\n' +
+      '------------------^'
+    );
+  });
+
+  it('should handle wrong closing token', function() {
+    var str = 'This <a>token</b> </a> is invalid';
+
+    var tokens = rrtt.tokenize(tokensCategories, str);
+
+    chai.expect(rrtt.buildTree.bind(null, tokens, opts, str)).to.throw(
+      Error,
+      'Closing tag doesn\'t match opening\n' +
+      'This <a>token</b> </a> is invalid\n' +
+      '-------------^'
+    );
+  });
+
+  it('should handle missing closing token', function() {
+    var str = 'This <a>token';
+
+    var tokens = rrtt.tokenize(tokensCategories, str);
+
+    chai.expect(rrtt.buildTree.bind(null, tokens, opts, str)).to.throw(
+      Error,
+      'Expected closing tag\n' +
+      'This <a>token\n' +
+      '-------------^'
+    );
+  });
 });
 
 describe('Injector', function() {
   it('should inject arguments into tree', function() {
     var tokens = rrtt.tokenize(tokensCategories, str);
-    var tree = rrtt.buildTree(tokens, opts);
+    var tree = rrtt.buildTree(tokens, opts, str);
 
     var result = rrtt.inject(tree, opts, {
       username: 'anmi',

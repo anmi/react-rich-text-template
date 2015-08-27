@@ -21,7 +21,11 @@ var defaultConfig = {
   selfClosingTagRegexp: [
     {type: 'selfClosingTag', regexp: /(<[^\>\/]+\/>)/g},
     {type: 'textPlaceholder', regexp: /(\{[^\{\}]+\})/g}
-  ]
+  ],
+  matchOpenAndClosingTagPair: function(opening, closing, conf) {
+    return conf.tokenValuesExtractors.openingTag(opening) ==
+        conf.tokenValuesExtractors.closingTag(closing);
+  }
 };
 
 function flattern(array) {
@@ -37,6 +41,13 @@ function flattern(array) {
 
   return flatternArray;
 }
+
+function formatTemplateError(error, template, position) {
+  return error + '\n' +
+  template + '\n' +
+  Array(position + 1).join('-') + '^';
+}
+
 //
 // tokens:
 // [{regexp: /regexp/g, name: 'tokenname'}]
@@ -71,13 +82,26 @@ function _tokenize(tokensCategories, str) {
 
 // TODO: escape tokens
 function tokenize(tokensCategories, str) {
-  return _tokenize(
+  var tokensWithIndex = [],
+    index = 0;
+
+  _tokenize(
     tokensCategories,
     str
-  );
+  ).forEach(function(token) {
+    tokensWithIndex.push({
+      token: token.token,
+      value: token.value,
+      position: index
+    });
+
+    index += token.value.length;
+  });
+
+  return tokensWithIndex;
 }
 
-function buildTree(tokens, opts) {
+function buildTree(tokens, opts, template) {
   var currentLevel = {
       elements: []
     },
@@ -109,6 +133,7 @@ function buildTree(tokens, opts) {
       case 'openingTag':
         var newLevel = {
           type: token.token,
+          tokenValue: token.value,
           value: opts.tokenValuesExtractors
             .openingTag(token.value),
           elements: []
@@ -118,11 +143,37 @@ function buildTree(tokens, opts) {
         currentLevel = newLevel;
         break;
       case 'closingTag':
+        if (stack.length <= 1) {
+          throw Error(formatTemplateError(
+            'Nothing to close by closeTag',
+            template,
+            token.position
+          ));
+        } else if (!opts.matchOpenAndClosingTagPair(
+              currentLevel.tokenValue,
+              token.value,
+              opts
+            )) {
+          throw Error(formatTemplateError(
+            'Closing tag doesn\'t match opening',
+            template,
+            token.position
+          ));
+        }
+
         stack.pop();
         currentLevel = stack[stack.length - 1];
         break;
     }
   });
+
+  if (currentLevel !== root) {
+    throw Error(formatTemplateError(
+      'Expected closing tag',
+      template,
+      template.length
+    ));
+  }
 
   return root;
 }
@@ -215,7 +266,8 @@ function compile(template, opts) {
 
   var rootNode = buildTree(
       tokenize(tokensCategories, template),
-      opts
+      opts,
+      template
     );
 
   return function(context) {
